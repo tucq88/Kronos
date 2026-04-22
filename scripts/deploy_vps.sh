@@ -5,15 +5,11 @@ set -e
 
 API_SECRET="${1:?Usage: $0 <api_secret>}"
 REPO_DIR="/opt/kronos"
-SERVICE_USER="kronos"
 PYTHON="python3"
 
 echo "=== System packages ==="
 apt-get update -q
 apt-get install -y -q python3 python3-pip python3-venv git
-
-echo "=== Create service user ==="
-id -u "$SERVICE_USER" &>/dev/null || useradd -r -s /bin/false -d "$REPO_DIR" "$SERVICE_USER"
 
 echo "=== Clone / update repo ==="
 if [ -d "$REPO_DIR/.git" ]; then
@@ -21,11 +17,10 @@ if [ -d "$REPO_DIR/.git" ]; then
 else
     git clone git@github.com:tucq88/Kronos.git "$REPO_DIR"
 fi
-chown -R "$SERVICE_USER:$SERVICE_USER" "$REPO_DIR"
 
 echo "=== Python venv + deps ==="
-sudo -u "$SERVICE_USER" $PYTHON -m venv "$REPO_DIR/.venv"
-sudo -u "$SERVICE_USER" "$REPO_DIR/.venv/bin/pip" install --quiet \
+$PYTHON -m venv "$REPO_DIR/.venv"
+"$REPO_DIR/.venv/bin/pip" install --quiet \
     gunicorn \
     flask \
     torch \
@@ -40,6 +35,8 @@ sudo -u "$SERVICE_USER" "$REPO_DIR/.venv/bin/pip" install --quiet \
     hf_transfer
 
 echo "=== Systemd service ==="
+mkdir -p /var/log/kronos
+
 cat > /etc/systemd/system/kronos.service <<EOF
 [Unit]
 Description=Kronos BTC prediction API
@@ -47,7 +44,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=$SERVICE_USER
+User=root
 WorkingDirectory=$REPO_DIR
 Environment="API_SECRET=$API_SECRET"
 Environment="PORT=8000"
@@ -65,16 +62,12 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-mkdir -p /var/log/kronos
-chown "$SERVICE_USER:$SERVICE_USER" /var/log/kronos
-
 systemctl daemon-reload
 systemctl enable kronos
 systemctl restart kronos
 
 echo ""
 echo "=== Done ==="
-echo "Service status:"
 systemctl status kronos --no-pager
 echo ""
 echo "API running at: http://$(curl -s ifconfig.me):8000"
