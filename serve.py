@@ -19,8 +19,11 @@ CACHE_TTL_SECONDS = 60 * 15
 BINANCE_KLINES_URL = "https://api.binance.com/api/v3/klines"
 ET = ZoneInfo("America/New_York")
 
-FINETUNED_TOKENIZER = os.path.join(os.path.dirname(__file__), "finetune_csv/finetuned/btc_15m/tokenizer/best_model")
-FINETUNED_PREDICTOR = os.path.join(os.path.dirname(__file__), "finetune_csv/finetuned/btc_15m/basemodel/best_model")
+_BASE = os.path.dirname(os.path.abspath(__file__))
+PRETRAINED_TOKENIZER = os.path.join(_BASE, "pretrained/Kronos-Tokenizer-base")
+PRETRAINED_PREDICTOR = os.path.join(_BASE, "pretrained/Kronos-small")
+FINETUNED_TOKENIZER  = os.path.join(_BASE, "finetune_csv/finetuned/btc_15m/tokenizer/best_model")
+FINETUNED_PREDICTOR  = os.path.join(_BASE, "finetune_csv/finetuned/btc_15m/basemodel/best_model")
 
 app = Flask(__name__)
 
@@ -41,9 +44,11 @@ def load_predictor(key: str) -> KronosPredictor:
             tokenizer = KronosTokenizer.from_pretrained(FINETUNED_TOKENIZER)
             model = Kronos.from_pretrained(FINETUNED_PREDICTOR)
         else:
-            print("Loading pretrained Kronos-small ...")
-            tokenizer = KronosTokenizer.from_pretrained("NeoQuasar/Kronos-Tokenizer-base")
-            model = Kronos.from_pretrained("NeoQuasar/Kronos-small")
+            src_tok = PRETRAINED_TOKENIZER if os.path.isdir(PRETRAINED_TOKENIZER) else "NeoQuasar/Kronos-Tokenizer-base"
+            src_mdl = PRETRAINED_PREDICTOR if os.path.isdir(PRETRAINED_PREDICTOR) else "NeoQuasar/Kronos-small"
+            print(f"Loading pretrained Kronos-small from {src_mdl} ...")
+            tokenizer = KronosTokenizer.from_pretrained(src_tok)
+            model = Kronos.from_pretrained(src_mdl)
 
         predictor = KronosPredictor(model, tokenizer, max_context=512)
         _predictors[key] = predictor

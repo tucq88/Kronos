@@ -79,3 +79,4 @@ tmp/
 finetune_csv/data/btc_15m.csv
 finetune_csv/finetuned/
 data/btcusdt_15m_cache.json
+pretrained/
