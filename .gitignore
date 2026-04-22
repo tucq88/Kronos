@@ -74,9 +74,17 @@ venv.bak/
 temp/
 tmp/
 .python-version
+pyvenv.cfg
+.lock
+bin/
+share/
+main.py
+pyproject.toml
+uv.lock
 
 # Kronos BTC fine-tuning
 finetune_csv/data/btc_15m.csv
 finetune_csv/finetuned/
 data/btcusdt_15m_cache.json
+examples/data/
 pretrained/
