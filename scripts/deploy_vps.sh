@@ -19,7 +19,7 @@ echo "=== Clone / update repo ==="
 if [ -d "$REPO_DIR/.git" ]; then
     git -C "$REPO_DIR" pull
 else
-    git clone https://github.com/tucq88/Kronos.git "$REPO_DIR"
+    git clone git@github.com:tucq88/Kronos.git "$REPO_DIR"
 fi
 chown -R "$SERVICE_USER:$SERVICE_USER" "$REPO_DIR"
 

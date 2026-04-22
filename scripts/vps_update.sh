@@ -1,13 +1,14 @@
 #!/bin/bash
-# Pull latest code and restart the service.
-# Run as root on the VPS.
+# Usage: ./scripts/vps_update.sh <vps-ip>
+# Or run directly on the VPS: bash /opt/kronos/scripts/vps_update.sh
 set -e
 
 REPO_DIR="/opt/kronos"
 
-echo "=== Pulling latest code ==="
-git -C "$REPO_DIR" pull
-
-echo "=== Restarting service ==="
-systemctl restart kronos
-systemctl status kronos --no-pager
+if [ -n "$1" ]; then
+    ssh "root@$1" "git -C $REPO_DIR pull && systemctl restart kronos && systemctl status kronos --no-pager"
+else
+    git -C "$REPO_DIR" pull
+    systemctl restart kronos
+    systemctl status kronos --no-pager
+fi
